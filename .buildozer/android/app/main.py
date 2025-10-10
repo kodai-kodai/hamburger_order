@@ -5,6 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
+from kivy.core.window import Window
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.resources import resource_add_path
 from kivy.graphics import Color, Rectangle
@@ -55,12 +56,13 @@ class MyApp(App):
         img_dir = os.path.join(os.path.dirname(__file__), "img")
 
         menus = [
-            ("barbecue.png", "バーベキュー"),
+            ("barbecue.png", "テリヤキ"),
             ("classicbeef.png", "クラシックビーフ"),
             ("spicychicken.png", "スパイシーチキン"),
             ("vegetarian.png", "ベジタリアン"),
             ("hotdog.png", "ホットドッグ"),
             ("nugget.png", "ナゲット"),
+            ("poteto.png", "ポテト"),
             ("coffee.png", "コーヒー"),
         ]
 
@@ -96,38 +98,44 @@ class MyApp(App):
 
     def create_menu_item(self, img_path, text):
         """画像とラベルをまとめたメニューカード"""
-        item_layout = BoxLayout(orientation="vertical", padding=5, spacing=5, size_hint_y=None, height=250)
+        item_layout = BoxLayout(
+            orientation="vertical",
+            padding=10,
+            spacing=20,
+            size_hint_y=None,
+            height=Window.height * 0.8
+        )
 
         # 画像（枠内でサイズ調整）
-        img = Image(source=img_path, allow_stretch=True, keep_ratio=True)
+        img = Image(
+            source=img_path,
+            size_hint_y=0.5, 
+            fit_mode="contain",
+            pos_hint={"center_x": 0.5},
+        )
+
 
         # ラベル（日本語対応＋中央寄せ）
         label = Label(
             text=text,
-            font_size="18sp",
+            font_size="30sp",
             halign="center",
             valign="middle",
-            size_hint_y=None,
-            height=40,
+            size_hint_y=0.3,
             color=(0, 0, 0, 1),
         )
+        
         label.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
         
-        qty_layout = BoxLayout(orientation="horizontal", spacing=30, size_hint_y=None, height=70, padding=10)
+        qty_layout = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=60)
         minus_btn = Button(text="-", font_size="20sp", size_hint_x=0.2)
-        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2, color=(0, 0, 0, 1))
+        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2, color=(0,0,0,1))
         plus_btn = Button(text="+", font_size="20sp", size_hint_x=0.2)
 
-        def increase_qty(instance):
-            qty_label.text = str(int(qty_label.text) + 1)
 
-        def decrease_qty(instance):
-            if int(qty_label.text) > 0:
-                qty_label.text = str(int(qty_label.text) - 1)
-
-        plus_btn.bind(on_press=increase_qty)
-        minus_btn.bind(on_press=decrease_qty)
-
+        plus_btn.bind(on_press=lambda x: qty_label.setter('text')(qty_label, str(int(qty_label.text) + 1)))
+        minus_btn.bind(on_press=lambda x: qty_label.setter('text')(qty_label, str(max(0, int(qty_label.text) - 1))))
+        
         qty_layout.add_widget(minus_btn)
         qty_layout.add_widget(qty_label)
         qty_layout.add_widget(plus_btn)

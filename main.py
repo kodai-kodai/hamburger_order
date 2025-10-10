@@ -73,6 +73,7 @@ class MyApp(App):
         return root_layout
 
     def create_menu_item(self, img_path, text):
+        """画像とラベルをまとめたメニューカード"""
         item_layout = BoxLayout(
             orientation="vertical",
             padding=10,
@@ -81,36 +82,35 @@ class MyApp(App):
             height=Window.height * 0.8
         )
 
+        # 画像（枠内でサイズ調整）
         img = Image(
             source=img_path,
             size_hint_y=0.5, 
             fit_mode="contain",
-            pos_hint={"center_x": 0.5}
+            pos_hint={"center_x": 0.5},
         )
+
 
         label = Label(
             text=text,
             font_size="30sp",
             halign="center",
             valign="middle",
-            size_hint_y=0.3
+            size_hint_y=0.3,
+            color=(0, 0, 0, 1),
         )
         
-        qty_layout = BoxLayout(
-            orientation="horizontal",
-            spacing=10,
-            size_hint_y=0.2  
-        )
-        label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-
+        label.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
+        
         qty_layout = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=60)
         minus_btn = Button(text="-", font_size="20sp", size_hint_x=0.2)
-        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2)
+        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2, color=(0,0,0,1))
         plus_btn = Button(text="+", font_size="20sp", size_hint_x=0.2)
+
 
         plus_btn.bind(on_press=lambda x: qty_label.setter('text')(qty_label, str(int(qty_label.text) + 1)))
         minus_btn.bind(on_press=lambda x: qty_label.setter('text')(qty_label, str(max(0, int(qty_label.text) - 1))))
-
+        
         qty_layout.add_widget(minus_btn)
         qty_layout.add_widget(qty_label)
         qty_layout.add_widget(plus_btn)
