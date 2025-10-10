@@ -8,8 +8,6 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.resources import resource_add_path
-from kivy.graphics import Color, Rectangle
-
 import os
 
 
@@ -21,19 +19,7 @@ class MyApp(App):
         LabelBase.register(DEFAULT_FONT, font_path)
 
         # ===== メインレイアウト =====
-        root_layout = BoxLayout(orientation="vertical", padding=20, spacing=10)
-        with root_layout.canvas.before:
-            Color(1,1,1, 1)  # 白 (R,G,B,A)
-            self.bg_rect = Rectangle(size=root_layout.size, pos=root_layout.pos)
-            
-        scroll_content = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
-        scroll_content.bind(minimum_height=scroll_content.setter('height'))
-
-
-
-# サイズと位置が変わったときに背景も追従させる
-        root_layout.bind(size=self._update_bg, pos=self._update_bg)
-
+        root_layout = BoxLayout(orientation="vertical", padding=15, spacing=10)
 
         # タイトルラベル（文字重なり防止: text_size指定）
         title = Label(
@@ -42,15 +28,13 @@ class MyApp(App):
             size_hint=(1, 0.15),
             halign="center",
             valign="middle",
-            color=(0, 0, 0, 1),
-            
         )
         # text_sizeをウィジェットサイズに合わせる
         title.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
 
         # ===== メニュー一覧 =====
         scroll = ScrollView(size_hint=(1, 0.8))
-        grid = GridLayout(cols=2, spacing=90, padding=20, size_hint_y=None)
+        grid = GridLayout(cols=2, spacing=10, padding=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
 
         img_dir = os.path.join(os.path.dirname(__file__), "img")
@@ -70,16 +54,8 @@ class MyApp(App):
         for img_name, label_text in menus:
             item = self.create_menu_item(os.path.join(img_dir, img_name), label_text)
             grid.add_widget(item)
-        
-        top_img = Image(source='./img/top.png', allow_stretch=True, keep_ratio=True, size_hint_y=None, height=500)
 
-
-        scroll_content.add_widget(top_img)
-        scroll_content.add_widget(grid)
-
-        scroll = ScrollView(size_hint=(1, 0.8))
-        scroll.add_widget(scroll_content)
-
+        scroll.add_widget(grid)
         root_layout.add_widget(title)
         root_layout.add_widget(scroll)
 
@@ -97,38 +73,43 @@ class MyApp(App):
         return root_layout
 
     def create_menu_item(self, img_path, text):
-        """画像とラベルをまとめたメニューカード"""
-        item_layout = BoxLayout(orientation="vertical", padding=5, spacing=5, size_hint_y=None, height=250)
+        item_layout = BoxLayout(
+            orientation="vertical",
+            padding=10,
+            spacing=20,
+            size_hint_y=None,
+            height=Window.height * 0.8
+        )
 
-        # 画像（枠内でサイズ調整）
-        img = Image(source=img_path, allow_stretch=True, keep_ratio=True)
+        img = Image(
+            source=img_path,
+            size_hint_y=0.5, 
+            fit_mode="contain",
+            pos_hint={"center_x": 0.5}
+        )
 
-        # ラベル（日本語対応＋中央寄せ）
         label = Label(
             text=text,
-            font_size="18sp",
+            font_size="30sp",
             halign="center",
             valign="middle",
-            size_hint_y=None,
-            height=40,
-            color=(0, 0, 0, 1),
+            size_hint_y=0.3
         )
-        label.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
         
-        qty_layout = BoxLayout(orientation="horizontal", spacing=30, size_hint_y=None, height=70, padding=10)
+        qty_layout = BoxLayout(
+            orientation="horizontal",
+            spacing=10,
+            size_hint_y=0.2  
+        )
+        label.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+
+        qty_layout = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=60)
         minus_btn = Button(text="-", font_size="20sp", size_hint_x=0.2)
-        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2, color=(0, 0, 0, 1))
+        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2)
         plus_btn = Button(text="+", font_size="20sp", size_hint_x=0.2)
 
-        def increase_qty(instance):
-            qty_label.text = str(int(qty_label.text) + 1)
-
-        def decrease_qty(instance):
-            if int(qty_label.text) > 0:
-                qty_label.text = str(int(qty_label.text) - 1)
-
-        plus_btn.bind(on_press=increase_qty)
-        minus_btn.bind(on_press=decrease_qty)
+        plus_btn.bind(on_press=lambda x: qty_label.setter('text')(qty_label, str(int(qty_label.text) + 1)))
+        minus_btn.bind(on_press=lambda x: qty_label.setter('text')(qty_label, str(max(0, int(qty_label.text) - 1))))
 
         qty_layout.add_widget(minus_btn)
         qty_layout.add_widget(qty_label)
@@ -141,13 +122,7 @@ class MyApp(App):
         return item_layout
 
     def go_to_order(self, instance):
-        print("🛒 注文画面に進みます！")
-        
-    
-    def _update_bg(self, instance, value):
-        self.bg_rect.size = instance.size
-        self.bg_rect.pos = instance.pos
-
+        print("注文画面に進みます！")
 
 
 if __name__ == "__main__":
