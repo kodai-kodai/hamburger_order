@@ -5,8 +5,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
+from kivy.core.window import Window
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.resources import resource_add_path
+from kivy.graphics import Color, Rectangle
+
 import os
 
 
@@ -18,7 +21,19 @@ class MyApp(App):
         LabelBase.register(DEFAULT_FONT, font_path)
 
         # ===== メインレイアウト =====
-        root_layout = BoxLayout(orientation="vertical", padding=15, spacing=10)
+        root_layout = BoxLayout(orientation="vertical", padding=20, spacing=10)
+        with root_layout.canvas.before:
+            Color(1,1,1, 1)  # 白 (R,G,B,A)
+            self.bg_rect = Rectangle(size=root_layout.size, pos=root_layout.pos)
+            
+        scroll_content = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
+
+
+
+# サイズと位置が変わったときに背景も追従させる
+        root_layout.bind(size=self._update_bg, pos=self._update_bg)
+
 
         # タイトルラベル（文字重なり防止: text_size指定）
         title = Label(
@@ -27,24 +42,27 @@ class MyApp(App):
             size_hint=(1, 0.15),
             halign="center",
             valign="middle",
+            color=(0, 0, 0, 1),
+            
         )
         # text_sizeをウィジェットサイズに合わせる
         title.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
 
         # ===== メニュー一覧 =====
         scroll = ScrollView(size_hint=(1, 0.8))
-        grid = GridLayout(cols=2, spacing=10, padding=10, size_hint_y=None)
+        grid = GridLayout(cols=2, spacing=90, padding=20, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
 
         img_dir = os.path.join(os.path.dirname(__file__), "img")
 
         menus = [
-            ("barbecue.png", "バーベキュー"),
+            ("barbecue.png", "テリヤキ"),
             ("classicbeef.png", "クラシックビーフ"),
             ("spicychicken.png", "スパイシーチキン"),
             ("vegetarian.png", "ベジタリアン"),
             ("hotdog.png", "ホットドッグ"),
             ("nugget.png", "ナゲット"),
+            ("poteto.png", "ポテト"),
             ("coffee.png", "コーヒー"),
         ]
 
@@ -52,14 +70,22 @@ class MyApp(App):
         for img_name, label_text in menus:
             item = self.create_menu_item(os.path.join(img_dir, img_name), label_text)
             grid.add_widget(item)
+        
+        top_img = Image(source='./img/top.png', allow_stretch=True, keep_ratio=True, size_hint_y=None, height=500)
 
-        scroll.add_widget(grid)
+
+        scroll_content.add_widget(top_img)
+        scroll_content.add_widget(grid)
+
+        scroll = ScrollView(size_hint=(1, 0.8))
+        scroll.add_widget(scroll_content)
+
         root_layout.add_widget(title)
         root_layout.add_widget(scroll)
 
         # ===== 下部のボタン =====
         order_button = Button(
-            text="🛒 注文画面へ進む",
+            text="注文画面へ進む",
             font_size="20sp",
             size_hint=(1, 0.15),
             background_color=(0.2, 0.6, 0.2, 1)
@@ -85,12 +111,13 @@ class MyApp(App):
             valign="middle",
             size_hint_y=None,
             height=40,
+            color=(0, 0, 0, 1),
         )
         label.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
         
-        qty_layout = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=50)
+        qty_layout = BoxLayout(orientation="horizontal", spacing=30, size_hint_y=None, height=70, padding=10)
         minus_btn = Button(text="-", font_size="20sp", size_hint_x=0.2)
-        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2)
+        qty_label = Label(text="0", font_size="20sp", size_hint_x=0.2, color=(0, 0, 0, 1))
         plus_btn = Button(text="+", font_size="20sp", size_hint_x=0.2)
 
         def increase_qty(instance):
@@ -115,6 +142,12 @@ class MyApp(App):
 
     def go_to_order(self, instance):
         print("🛒 注文画面に進みます！")
+        
+    
+    def _update_bg(self, instance, value):
+        self.bg_rect.size = instance.size
+        self.bg_rect.pos = instance.pos
+
 
 
 if __name__ == "__main__":
