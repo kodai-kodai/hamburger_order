@@ -9,7 +9,6 @@ from kivy.core.window import Window
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.resources import resource_add_path
 from kivy.graphics import Color, Rectangle
-
 import os
 
 
@@ -21,19 +20,14 @@ class MyApp(App):
         LabelBase.register(DEFAULT_FONT, font_path)
 
         # ===== メインレイアウト =====
-        root_layout = BoxLayout(orientation="vertical", padding=20, spacing=10)
+        root_layout = BoxLayout(orientation="vertical", padding=15, spacing=10)
         with root_layout.canvas.before:
-            Color(1,1,1, 1)  # 白 (R,G,B,A)
-            self.bg_rect = Rectangle(size=root_layout.size, pos=root_layout.pos)
-            
-        scroll_content = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
-        scroll_content.bind(minimum_height=scroll_content.setter('height'))
 
-
-
-# サイズと位置が変わったときに背景も追従させる
-        root_layout.bind(size=self._update_bg, pos=self._update_bg)
-
+            Color(1, 1, 1, 1)  # 白色
+            root_bg = Rectangle(pos=root_layout.pos, size=root_layout.size)
+            # サイズ・位置が変わった時に背景も追従
+            root_layout.bind(pos=lambda instance, value: setattr(root_bg, 'pos', value))
+            root_layout.bind(size=lambda instance, value: setattr(root_bg, 'size', value))
 
         # タイトルラベル（文字重なり防止: text_size指定）
         title = Label(
@@ -42,18 +36,27 @@ class MyApp(App):
             size_hint=(1, 0.15),
             halign="center",
             valign="middle",
-            color=(0, 0, 0, 1),
-            
+            color=(0,0,0,1),
         )
         # text_sizeをウィジェットサイズに合わせる
         title.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
 
         # ===== メニュー一覧 =====
         scroll = ScrollView(size_hint=(1, 0.8))
-        grid = GridLayout(cols=2, spacing=90, padding=20, size_hint_y=None)
+        grid = GridLayout(cols=2, spacing=10, padding=10, size_hint_y=None)
         grid.bind(minimum_height=grid.setter('height'))
 
         img_dir = os.path.join(os.path.dirname(__file__), "img")
+        
+        # スクロールの一番上に画像を追加
+        top_image_path = os.path.join(img_dir, "top.png")  # 画像ファイル名は適宜変更
+        top_image = Image(
+            source=top_image_path,
+            size_hint_y=None,
+            height=200,  # 高さは調整してください
+            fit_mode="contain"
+        )
+        grid.add_widget(top_image)
 
         menus = [
             ("barbecue.png", "テリヤキ"),
@@ -70,16 +73,8 @@ class MyApp(App):
         for img_name, label_text in menus:
             item = self.create_menu_item(os.path.join(img_dir, img_name), label_text)
             grid.add_widget(item)
-        
-        top_img = Image(source='./img/top.png', allow_stretch=True, keep_ratio=True, size_hint_y=None, height=500)
 
-
-        scroll_content.add_widget(top_img)
-        scroll_content.add_widget(grid)
-
-        scroll = ScrollView(size_hint=(1, 0.8))
-        scroll.add_widget(scroll_content)
-
+        scroll.add_widget(grid)
         root_layout.add_widget(title)
         root_layout.add_widget(scroll)
 
@@ -115,7 +110,6 @@ class MyApp(App):
         )
 
 
-        # ラベル（日本語対応＋中央寄せ）
         label = Label(
             text=text,
             font_size="30sp",
@@ -147,13 +141,7 @@ class MyApp(App):
         return item_layout
 
     def go_to_order(self, instance):
-        print("🛒 注文画面に進みます！")
-        
-    
-    def _update_bg(self, instance, value):
-        self.bg_rect.size = instance.size
-        self.bg_rect.pos = instance.pos
-
+        print("注文画面に進みます！")
 
 
 if __name__ == "__main__":

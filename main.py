@@ -8,6 +8,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.resources import resource_add_path
+from kivy.graphics import Color, Rectangle
 import os
 
 
@@ -20,7 +21,16 @@ class MyApp(App):
 
         # ===== メインレイアウト =====
         root_layout = BoxLayout(orientation="vertical", padding=15, spacing=10)
+        with root_layout.canvas.before:
 
+            Color(1, 1, 1, 1)  # 白色
+            root_bg = Rectangle(pos=root_layout.pos, size=root_layout.size)
+            # サイズ・位置が変わった時に背景も追従
+            root_layout.bind(pos=lambda instance, value: setattr(root_bg, 'pos', value))
+            root_layout.bind(size=lambda instance, value: setattr(root_bg, 'size', value))
+
+        scroll_content = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
+        scroll_content.bind(minimum_height=scroll_content.setter('height'))
         # タイトルラベル（文字重なり防止: text_size指定）
         title = Label(
             text=" ハンバーガーメニュー ",
@@ -28,6 +38,7 @@ class MyApp(App):
             size_hint=(1, 0.15),
             halign="center",
             valign="middle",
+            color=(0,0,0,1),
         )
         # text_sizeをウィジェットサイズに合わせる
         title.bind(size=lambda instance, value: setattr(instance, 'text_size', value))
@@ -38,6 +49,11 @@ class MyApp(App):
         grid.bind(minimum_height=grid.setter('height'))
 
         img_dir = os.path.join(os.path.dirname(__file__), "img")
+        
+        # スクロールの一番上に画像を追加
+        top_img = Image(source='./img/top.png', allow_stretch=True, keep_ratio=True, size_hint_y=None, height=500)
+
+
 
         menus = [
             ("barbecue.png", "テリヤキ"),
@@ -55,7 +71,10 @@ class MyApp(App):
             item = self.create_menu_item(os.path.join(img_dir, img_name), label_text)
             grid.add_widget(item)
 
-        scroll.add_widget(grid)
+
+        scroll_content.add_widget(top_img)
+        scroll_content.add_widget(grid)
+        scroll.add_widget(scroll_content)
         root_layout.add_widget(title)
         root_layout.add_widget(scroll)
 

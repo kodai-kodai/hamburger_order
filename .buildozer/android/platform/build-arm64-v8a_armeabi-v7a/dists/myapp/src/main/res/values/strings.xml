@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">hamburger</string>
-    <string name="private_version">05b8f6dff356a88eeaab7c266319ae3e1c304470</string>
+    <string name="private_version">75620ac2b5ac0bab53535073cba7b81d3f04028b</string>
     <string name="presplash_color">#000000</string>
     <string name="urlScheme">kivy</string>
 </resources>
